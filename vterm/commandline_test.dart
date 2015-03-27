@@ -33,6 +33,9 @@ class SimpleTerminalModelDelegate implements TerminalModelDelegate {
 }
 
 void main(List<String> arguments) {
+  assertFailOnUnimplemented = true;
+  assertFailOnUnknown = true;
+
   var m = new TerminalModel(new SimpleTerminalModelDelegate());
   while (true) {
     var i = stdin.readByteSync();

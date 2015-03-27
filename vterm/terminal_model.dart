@@ -709,7 +709,7 @@ class TerminalModel {
         }
         var n = _clamp(1, _csiParams[0], height);
         for (var i = 0; i < n; i++) {
-          lines.insertAt(lines.length - height, _newBlankLine());
+          lines.insert(lines.length - height, _newBlankLine());
           lines.removeLast();
         }
         break;
