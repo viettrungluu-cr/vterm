@@ -4,6 +4,12 @@
 
 import 'dart:core';
 
+// Set to true to fail assertions on not-yet-implemented things (codes, etc.).
+bool assertFailOnUnimplemented = false;
+
+// Set to true to fail assertions on unknown codes.
+bool assertFailOnUnknown = false;
+
 const int kTerminalModelUnfilledSpace = 0;
 
 // TODO(vtl): Make generic?
@@ -757,11 +763,11 @@ class TerminalModel {
         break;
       case 98:  // 'b': Repeat the preceding graphic character.
         // TODO(vtl): FIXME soon.
-assert(false);
+        assert(!assertFailOnUnimplemented);
         break;
       case 99:  // 'c': Send device attributes.
         // TODO(vtl): FIXME soon.
-assert(false);
+        assert(!assertFailOnUnimplemented);
         break;
       case 100:  // 'd': Line position absolute.
         if (_csiC1 != 0) {  // Only accept no C1.
@@ -807,12 +813,11 @@ assert(false);
             case 12:
             case 20:
               // TODO(vtl): FIXME soon.
-assert(false);
+              assert(!assertFailOnUnimplemented);
               break;
-default:
-// TODO(vtl): FIXME soon.
-assert(false);
-break;
+            default:
+              assert(!assertFailOnUnknown);
+              break;
           }
         } else if (_csiC1 == 63) {  // C1 = '?'.
           switch (_csiParams[0]) {
@@ -821,27 +826,24 @@ break;
             case 3:
             case 4:
               // TODO(vtl): FIXME soon.
-assert(false);
+              assert(!assertFailOnUnimplemented);
               break;
             case 5:  // Reverse video.
               reverseVideo = true;
               break;
             case 6:
               // TODO(vtl): FIXME soon.
-assert(false);
+              assert(!assertFailOnUnimplemented);
               break;
             case 7:  // Wraparound mode.
               autoWrap = true;
               break;
             case 8:
             case 9:
-              // TODO(vtl): FIXME soon.
-assert(false);
-              break;
             case 10:
             case 12:
               // TODO(vtl): FIXME soon.
-assert(false);
+              assert(!assertFailOnUnimplemented);
               break;
             case 18:  // Print form feed.
               break;
@@ -865,8 +867,7 @@ assert(false);
             case 69:
             case 95:
               // TODO(vtl): FIXME soon.
-assert(false);
-              break;
+              assert(!assertFailOnUnimplemented);
             case 1001:
             case 1002:
             case 1003:
@@ -897,18 +898,16 @@ assert(false);
             case 1061:
             case 2004:
               // TODO(vtl): FIXME soon.
-assert(false);
+              assert(!assertFailOnUnimplemented);
+            default:
+              assert(!assertFailOnUnknown);
               break;
-default:
-// TODO(vtl): FIXME soon.
-assert(false);
-break;
           }
         }
         break;
       case 105:  // 'i': Media copy.
         // TODO(vtl): FIXME soon.
-assert(false);
+        assert(!assertFailOnUnimplemented);
         break;
       case 106:  // 'j': Not actually valid/specified.
         break;
@@ -922,12 +921,11 @@ assert(false);
             case 12:
             case 20:
               // TODO(vtl): FIXME soon.
-assert(false);
+              assert(!assertFailOnUnimplemented);
               break;
-default:
-// TODO(vtl): FIXME soon.
-assert(false);
-break;
+            default:
+              assert(!assertFailOnUnknown);
+              break;
           }
         } else if (_csiC1 == 63) {  // C1 = '?'.
           switch (_csiParams[0]) {
@@ -936,29 +934,26 @@ break;
             case 3:
             case 4:
               // TODO(vtl): FIXME soon.
-assert(false);
+              assert(!assertFailOnUnimplemented);
               break;
             case 5:
               reverseVideo = false;
               break;
             case 6:
               // TODO(vtl): FIXME soon.
-assert(false);
+              assert(!assertFailOnUnimplemented);
               break;
             case 7:  // Wraparound mode.
               // TODO(vtl): FIXME soon.
-assert(false);
-//              autoWrap = true;
+              assert(!assertFailOnUnimplemented);
+              autoWrap = false;
               break;
             case 8:
             case 9:
-              // TODO(vtl): FIXME soon.
-assert(false);
-              break;
             case 10:
             case 12:
               // TODO(vtl): FIXME soon.
-assert(false);
+              assert(!assertFailOnUnimplemented);
               break;
             case 18:  // Don't print form feed.
               break;
@@ -981,8 +976,7 @@ assert(false);
             case 67:
             case 69:
             case 95:
-              // TODO(vtl): FIXME soon.
-assert(false);
+              assert(!assertFailOnUnimplemented);
               break;
             case 1001:
             case 1002:
@@ -1013,13 +1007,11 @@ assert(false);
             case 1060:
             case 1061:
             case 2004:
-              // TODO(vtl): FIXME soon.
-assert(false);
+              assert(!assertFailOnUnimplemented);
               break;
-default:
-// TODO(vtl): FIXME soon.
-assert(false);
-break;
+            default:
+              assert(!assertFailOnUnknown);
+              break;
           }
         }
         break;
@@ -1157,20 +1149,20 @@ break;
               bgColor = delegate.mapIndexToColor(_clamp(0, _csiParams[2], 255));
             }
             break;
-default:
-assert(false);
-break;
+          default:
+            assert(!assertFailOnUnknown);
+            break;
         }
         break;
       case 110:  // 'n': Device status report.
         // TODO(vtl): FIXME soon.
-assert(false);
+        assert(!assertFailOnUnimplemented);
         break;
       case 111:  // 'o'.
       case 112:  // 'p'.
       case 113:  // 'q'.
         // TODO(vtl): FIXME soon.
-assert(false);
+        assert(!assertFailOnUnimplemented);
         break;
       case 114:  // 'r'.
         if (_csiC1 == 0) {  // No C1.
@@ -1186,7 +1178,7 @@ assert(false);
           }
         } else if (_csiC1 == 63) {  // C1 = '?'.
           // TODO(vtl): FIXME soon.
-assert(false);
+          assert(!assertFailOnUnimplemented);
         }
         break;
       case 115:  // 's'.
@@ -1196,7 +1188,7 @@ assert(false);
           savedCursorY = cursorY;
         } else if (_csiC1 == 63) {  // C1 = '?'.
           // TODO(vtl): FIXME soon.
-assert(false);
+          assert(!assertFailOnUnimplemented);
         }
         break;
       case 116:  // 't'.
@@ -1211,11 +1203,11 @@ assert(false);
       case 125:  // '}'.
       case 126:  // '~'.
         // TODO(vtl): FIXME soon.
-assert(false);
+        assert(!assertFailOnUnimplemented);
         break;
-default:
-assert(false);
-break;
+      default:
+        assert(!assertFailOnUnknown);
+        break;
     }
 
     state = TerminalModelState.NORMAL;
