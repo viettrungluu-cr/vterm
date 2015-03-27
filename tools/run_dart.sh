@@ -7,6 +7,10 @@
 ROOT_DIR="$(dirname "$(readlink -f "$0")")/.."
 source "${ROOT_DIR}/tools/common.sh"
 
-cd "${ROOT_DIR}"
-DARTFMT="${DART_SDK_DIR}/bin/dartfmt"
-find . -name '*.dart' -print0 | xargs -0 "$DARTFMT" -w
+if [ $# -lt 1 ]; then
+  echo "usage: $0 <foo.dart> [args ...]"
+fi
+
+SCRIPT_FILE="$1"
+shift
+"${DART_SDK_DIR}/bin/dart" -c "${SCRIPT_FILE}" $*
