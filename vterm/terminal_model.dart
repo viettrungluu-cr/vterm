@@ -638,8 +638,9 @@ class TerminalModel {
       case 76:
         {
           // 'L': Insert lines.
-          // Inserts blank lines "at" current line (moves current and below lines
-          // "down"). Leaves cursor on the same row but in the first column.
+          // Inserts blank lines "at" current line (moves current and below
+          // lines "down"). Leaves cursor on the same row but in the first
+          // column.
           if (_csiC1 != 0) {
             // Only accept no C1.
             break;
@@ -704,8 +705,8 @@ class TerminalModel {
       case 83:
         {
           // 'S': Scroll up.
-          // Adds blank lines at the bottom, scrolling the rest of the screen up.
-          // Leaves the cursor in the current position.
+          // Adds blank lines at the bottom, scrolling the rest of the screen
+          // up. Leaves the cursor in the current position.
           // TODO(vtl): C1 = '?' is actually specified (for Sixel or ReGIS
           // Graphics). Haha.
           if (_csiC1 != 0) {
@@ -735,8 +736,8 @@ class TerminalModel {
             break;
           }
           // TODO(vtl): A 5-parameter version (no C1) is actually specified
-          // (initiate mouse highlight tracking). But xterm ignores 2-4 parameter
-          // sequences.
+          // (initiate mouse highlight tracking). But xterm ignores 2-4
+          // parameter sequences.
           if (_csiParams.length > 1) {
             break;
           }
@@ -757,8 +758,8 @@ class TerminalModel {
         {
           // 'X': Erase characters.
           // Starting at the current position, *replaces* characters on the
-          // current line with blank characters. Leaves the cursor in the current
-          // position.
+          // current line with blank characters. Leaves the cursor in the
+          // current position.
           if (_csiC1 != 0) {
             // Only accept no C1.
             break;
