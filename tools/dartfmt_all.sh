@@ -6,11 +6,8 @@
 # We're in the tools directory. Change to our root directory.
 cd "$(dirname "$0")/.."
 
-if [ ! -f LOCAL_CONFIG ]; then
-  echo "$0: no LOCAL_CONFIG file"
-  exit 1
-fi
-source LOCAL_CONFIG
+ROOT_DIR=.
+source tools/common.sh
 
 DARTFMT="${DART_SDK_DIR}/bin/dartfmt"
 find . -name '*.dart' -print0 | xargs -0 "$DARTFMT" -w
