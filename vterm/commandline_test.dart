@@ -9,10 +9,10 @@
 import 'dart:core';
 import 'dart:io';
 
-import 'terminal_model.dart';
+import 'terminal.dart';
 import 'xterm256_colors.dart' as xterm256;
 
-class SimpleTerminalModelDelegate implements TerminalModelDelegate {
+class SimpleTerminalDelegate implements TerminalDelegate {
   @override
   int mapIndexToColor(int index) {
     return xterm256.mapIndexToColor(index);
@@ -34,7 +34,7 @@ void main(List<String> arguments) {
   assertFailOnUnimplemented = true;
   assertFailOnUnknown = true;
 
-  var m = new TerminalModel(new SimpleTerminalModelDelegate());
+  var m = new Terminal(new SimpleTerminalDelegate());
   while (true) {
     var i = stdin.readByteSync();
     if (i < 0) {
@@ -45,7 +45,7 @@ void main(List<String> arguments) {
 
   for (var l in m.lines) {
     for (var c in l.characters) {
-      if (c == kTerminalModelUnfilledSpace) {
+      if (c == kTerminalUnfilledSpace) {
         c = 32;
       }
       stdout.writeCharCode(c);

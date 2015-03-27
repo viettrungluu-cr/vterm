@@ -10,7 +10,7 @@ bool assertFailOnUnimplemented = false;
 // Set to true to fail assertions on unknown codes.
 bool assertFailOnUnknown = false;
 
-const int kTerminalModelUnfilledSpace = 0;
+const int kTerminalUnfilledSpace = 0;
 
 // TODO(vtl): Make generic?
 int _clamp(int a, int n, int c) {
@@ -32,7 +32,7 @@ int _listGet(List<int> list, int index) {
   return (index >= 0 && index < list.length) ? list[index] : 0;
 }
 
-abstract class TerminalModelDelegate {
+abstract class TerminalDelegate {
   // Maps |index| (in [0, 255]) to a "color".
   int mapIndexToColor(int index);
 
@@ -68,15 +68,15 @@ const int kAttributeFlagDoublyUnderlined = 256; // <N> = 21.
 // TODO(vtl): I assume that doubly-underlined and underlined are mutually
 // exclusive (or perhaps the latter implies the former).
 
-class TerminalModelLine {
-  // Parallel lists of the same length (the |TerminalModel|'s |width|), giving
+class TerminalLine {
+  // Parallel lists of the same length (the |Terminal|'s |width|), giving
   // character, color, and attribute data for a given line.
   List<int> characters;
   List<int> fgColors;
   List<int> bgColors;
   List<int> attributeFlags;
 
-  TerminalModelLine(
+  TerminalLine(
       int width, int character, int fgColor, int bgColor, int attributeFlag)
       : characters = new List<int>.filled(width, character),
         fgColors = new List<int>.filled(width, fgColor),
@@ -92,7 +92,7 @@ class TerminalModelLine {
   }
 }
 
-enum TerminalModelState {
+enum TerminalState {
   // Normal state (not in an escape sequence).
   NORMAL,
 
@@ -140,12 +140,12 @@ enum TerminalModelState {
 }
 
 // Notes:
-// * Colors are integers, opaque to |TerminalModel|. (It's up to the consumer of
-//   the modelled data to decide how to assign actual colors to those integers.)
-// * We do NOT render cursors.
+// * Colors are integers, opaque to |Terminal|. (It's up to the consumer of the
+//   modelled data to decide how to assign actual colors to those integers.) We
+//   do NOT render cursors.
 // * Our coordinates are all zero-based.
-class TerminalModel {
-  TerminalModelDelegate delegate;
+class Terminal {
+  TerminalDelegate delegate;
 
   // |resize()| must be called after modifying these.
   int width;
@@ -190,15 +190,15 @@ class TerminalModel {
   // List of line data (for the viewport and scrollback), of length at least
   // |height| and at most |height + maxScrollback|. (The viewport data is in the
   // *last* |height| entries.)
-  List<TerminalModelLine> lines;
+  List<TerminalLine> lines;
 
-  TerminalModelState state;
+  TerminalState state;
   // Valid only in the CSI states.
   int _csiC1; // Optional leading character (0 if not present).
   List<int> _csiParams; // Always non-null.
   int _csiC2; // Optional trailing character (o if not present).
 
-  TerminalModel(this.delegate,
+  Terminal(this.delegate,
       {this.width: 80, this.height: 24, this.maxScrollback: 1000}) {
     assert(delegate != null);
     _reset(true);
@@ -207,22 +207,22 @@ class TerminalModel {
 
   void putChar(int char) {
     switch (state) {
-      case TerminalModelState.NORMAL:
+      case TerminalState.NORMAL:
         _normalPutChar(char);
         break;
-      case TerminalModelState.ESCAPE:
+      case TerminalState.ESCAPE:
         _escapePutChar(char);
         break;
-      case TerminalModelState.EAT_NORMAL:
+      case TerminalState.EAT_NORMAL:
         _eatNormalPutChar(char);
         break;
-      case TerminalModelState.CSI1:
+      case TerminalState.CSI1:
         _csi1PutChar(char);
         break;
-      case TerminalModelState.CSI2:
+      case TerminalState.CSI2:
         _csi2PutChar(char);
         break;
-      case TerminalModelState.CSI3:
+      case TerminalState.CSI3:
         _csi3PutChar(char);
         break;
     }
@@ -260,7 +260,7 @@ class TerminalModel {
           cursorX = 0;
           break;
         case 27: // ESC.
-          state = TerminalModelState.ESCAPE;
+          state = TerminalState.ESCAPE;
           break;
         default:
           // TODO(vtl): Did I miss anything? Should we do anything with invalid
@@ -299,7 +299,7 @@ class TerminalModel {
       case 46: // '.'.
       case 47: // '/'.
         // We'll be liberal and eat any printable C2.
-        state = TerminalModelState.EAT_NORMAL;
+        state = TerminalState.EAT_NORMAL;
         break;
 
       // Commands of the form ESC C:
@@ -317,7 +317,7 @@ class TerminalModel {
       case 124: // '|'.
       case 125: // '}'.
       case 126: // '~'.
-        state = TerminalModelState.NORMAL;
+        state = TerminalState.NORMAL;
         break;
 
       case 55: // '7': Save cursor.
@@ -325,7 +325,7 @@ class TerminalModel {
         haveSavedCursor = true;
         savedCursorX = cursorX;
         savedCursorY = cursorY;
-        state = TerminalModelState.NORMAL;
+        state = TerminalState.NORMAL;
         break;
 
       case 56: // '8': Restore cursor.
@@ -334,7 +334,7 @@ class TerminalModel {
           cursorX = savedCursorX;
           cursorY = savedCursorY;
         } // Else ignore.
-        state = TerminalModelState.NORMAL;
+        state = TerminalState.NORMAL;
         break;
 
       case 99: // 'c': Full reset.
@@ -345,13 +345,13 @@ class TerminalModel {
       // more details.
       case 91: // '['.
         _csiStart();
-        state = TerminalModelState.CSI1;
+        state = TerminalState.CSI1;
         break;
 
       default:
         // Eat the character in this case (TODO(vtl): is this right?) and leave
         // ESCAPE.
-        state = TerminalModelState.NORMAL;
+        state = TerminalState.NORMAL;
         break;
     }
   }
@@ -363,14 +363,14 @@ class TerminalModel {
     }
 
     // Just eat the character and return to NORMAL.
-    state = TerminalModelState.NORMAL;
+    state = TerminalState.NORMAL;
   }
 
   void _csi1PutChar(int char) {
     // Leave handling of escape chars to |_csi2PutChar()|.
     if (_csiIsC1(char)) {
       _csiC1 = char;
-      state = TerminalModelState.CSI2;
+      state = TerminalState.CSI2;
       return;
     }
 
@@ -386,32 +386,32 @@ class TerminalModel {
 
     if (_csiIsC2(char)) {
       _csiC2 = char;
-      state = TerminalModelState.CSI3;
+      state = TerminalState.CSI3;
       return;
     }
 
     if (_csiIsC3(char)) {
       _csiFinish(char);
-      state = TerminalModelState.NORMAL;
+      state = TerminalState.NORMAL;
       return;
     }
 
     if (char >= 48 && char <= 57) {
       // Digit.
       _csiHandleDigit(char);
-      state = TerminalModelState.CSI2;
+      state = TerminalState.CSI2;
       return;
     }
 
     if (char == 59) {
       // ';'.
       _csiHandleSemicolon();
-      state = TerminalModelState.CSI2;
+      state = TerminalState.CSI2;
       return;
     }
 
     // Bad sequence: just eat everything.
-    state = TerminalModelState.NORMAL;
+    state = TerminalState.NORMAL;
   }
 
   void _csi3PutChar(int char) {
@@ -422,12 +422,12 @@ class TerminalModel {
 
     if (_csiIsC3(char)) {
       _csiFinish(char);
-      state = TerminalModelState.NORMAL;
+      state = TerminalState.NORMAL;
       return;
     }
 
     // Bad sequence: just eat everything.
-    state = TerminalModelState.NORMAL;
+    state = TerminalState.NORMAL;
   }
 
   void _csiStart() {
@@ -572,7 +572,7 @@ class TerminalModel {
             {
               var l = _currentLine();
               for (var x = cursorX; x < width; x++) {
-                l.setAt(x, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+                l.setAt(x, kTerminalUnfilledSpace, fgColor, bgColor, 0);
               }
               for (var y = cursorY + 1; y < height; y++) {
                 lines[lines.length - height + y] = _newBlankLine();
@@ -583,7 +583,7 @@ class TerminalModel {
             {
               var l = _currentLine();
               for (var x = cursorX; x >= 0; x--) {
-                l.setAt(x, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+                l.setAt(x, kTerminalUnfilledSpace, fgColor, bgColor, 0);
               }
               for (var y = cursorY - 1; y >= 0; y--) {
                 lines[lines.length - height + y] = _newBlankLine();
@@ -615,7 +615,7 @@ class TerminalModel {
             {
               var l = _currentLine();
               for (var x = cursorX; x < width; x++) {
-                l.setAt(x, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+                l.setAt(x, kTerminalUnfilledSpace, fgColor, bgColor, 0);
               }
               break;
             }
@@ -623,7 +623,7 @@ class TerminalModel {
             {
               var l = _currentLine();
               for (var x = cursorX; x >= 0; x--) {
-                l.setAt(x, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+                l.setAt(x, kTerminalUnfilledSpace, fgColor, bgColor, 0);
               }
               break;
             }
@@ -690,11 +690,11 @@ class TerminalModel {
               l.setAt(x, l.characters[x + n], l.fgColors[x + n],
                   l.bgColors[x + n], l.attributeFlags[x + n]);
             } else {
-              l.setAt(x, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+              l.setAt(x, kTerminalUnfilledSpace, fgColor, bgColor, 0);
             }
           }
           for (; x < width; x++) {
-            l.setAt(x, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+            l.setAt(x, kTerminalUnfilledSpace, fgColor, bgColor, 0);
           }
           break;
         }
@@ -767,8 +767,7 @@ class TerminalModel {
           var l = _currentLine();
           var n = _clamp(1, _csiParams[0], width - cursorX);
           for (var i = 0; i < n; i++) {
-            l.setAt(
-                cursorX + i, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+            l.setAt(cursorX + i, kTerminalUnfilledSpace, fgColor, bgColor, 0);
           }
           break;
         }
@@ -1263,15 +1262,15 @@ class TerminalModel {
         break;
     }
 
-    state = TerminalModelState.NORMAL;
+    state = TerminalState.NORMAL;
   }
 
   int _csiGetParam(int index) => _listGet(_csiParams, index);
 
-  TerminalModelLine _newBlankLine() => new TerminalModelLine(
-      width, kTerminalModelUnfilledSpace, fgColor, bgColor, attributeFlags);
+  TerminalLine _newBlankLine() => new TerminalLine(
+      width, kTerminalUnfilledSpace, fgColor, bgColor, attributeFlags);
 
-  TerminalModelLine _currentLine() => lines[lines.length - height + cursorY];
+  TerminalLine _currentLine() => lines[lines.length - height + cursorY];
 
   int _clampX(int n) => _clamp(0, n, width - 1);
   int _clampY(int n) => _clamp(0, n, height - 1);
@@ -1297,7 +1296,7 @@ class TerminalModel {
     }
 
     if (clearScrollback) {
-      lines = new List<TerminalModelLine>();
+      lines = new List<TerminalLine>();
       lines.length = height;
       for (var i = 0; i < height; i++) {
         lines[i] = _newBlankLine();
@@ -1309,7 +1308,7 @@ class TerminalModel {
       }
     }
 
-    state = TerminalModelState.NORMAL;
+    state = TerminalState.NORMAL;
   }
 
   void _advanceCursor() {
