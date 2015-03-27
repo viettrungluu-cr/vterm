@@ -1,0 +1,14 @@
+This is libteken from FreeBSD, used for testing purposes. (See COPYRIGHT and
+each file for copyright/license information.)
+
+It was obtained as follows (from this directory):
+
+  svn export svn://svn.FreeBSD.org/base/head/sys/teken/@276292
+  svn export svn://svn.FreeBSD.org/base/head/COPYRIGHT@276292
+
+Local modifications:
+
+teken/teken_state.h was manually generated (from the teken subdirectory)
+using:
+
+  awk -f gensequences sequences > teken_state.h
