@@ -46,15 +46,15 @@ abstract class TerminalModelDelegate {
 }
 
 // Numbers in comments correspond to <N> in for ^[[<N>m.
-const int kAttributeFlagBold = 1;                // <N> = 1.
-const int kAttributeFlagFaint = 2;               // <N> = 2.
-const int kAttributeFlagItalicized = 4;          // <N> = 3.
-const int kAttributeFlagUnderlined = 8;          // <N> = 4.
-const int kAttributeFlagBlink = 16;              // <N> = 5.
-const int kAttributeFlagInverse = 32;            // <N> = 6.
-const int kAttributeFlagInvisible = 64;          // <N> = 7.
-const int kAttributeFlagCrossedOut = 128;        // <N> = 8.
-const int kAttributeFlagDoublyUnderlined = 256;  // <N> = 21.
+const int kAttributeFlagBold = 1; // <N> = 1.
+const int kAttributeFlagFaint = 2; // <N> = 2.
+const int kAttributeFlagItalicized = 4; // <N> = 3.
+const int kAttributeFlagUnderlined = 8; // <N> = 4.
+const int kAttributeFlagBlink = 16; // <N> = 5.
+const int kAttributeFlagInverse = 32; // <N> = 6.
+const int kAttributeFlagInvisible = 64; // <N> = 7.
+const int kAttributeFlagCrossedOut = 128; // <N> = 8.
+const int kAttributeFlagDoublyUnderlined = 256; // <N> = 21.
 // Values not mentioned above:
 //  <N> = 0: Normal (default). TODO(vtl): Resets everything, I assume?
 //  <N> = 22: Normal (neither bold nor faint).
@@ -76,16 +76,15 @@ class TerminalModelLine {
   List<int> bgColors;
   List<int> attributeFlags;
 
-  TerminalModelLine(int width, int character, int fgColor, int bgColor,
-      int attributeFlag)
+  TerminalModelLine(
+      int width, int character, int fgColor, int bgColor, int attributeFlag)
       : characters = new List<int>.filled(width, character),
         fgColors = new List<int>.filled(width, fgColor),
         bgColors = new List<int>.filled(width, bgColor),
-        attributeFlags = new List<int>.filled(width, attributeFlag) {
-  }
+        attributeFlags = new List<int>.filled(width, attributeFlag) {}
 
-  void setAt(int index, int character, int fgColor, int bgColor,
-      int attributeFlag) {
+  void setAt(
+      int index, int character, int fgColor, int bgColor, int attributeFlag) {
     characters[index] = character;
     fgColors[index] = fgColor;
     bgColors[index] = bgColor;
@@ -151,7 +150,7 @@ class TerminalModel {
   // |resize()| must be called after modifying these.
   int width;
   int height;
-  int maxScrollback;  // In addition to |height|.
+  int maxScrollback; // In addition to |height|.
 
   int fgColor;
   int bgColor;
@@ -161,13 +160,13 @@ class TerminalModel {
   bool reverseVideo;
 
   // Cursor position and visibility.
-  int cursorX;  // In [0, width).
-  int cursorY;  // In [0, height).
+  int cursorX; // In [0, width).
+  int cursorY; // In [0, height).
   bool cursorVisible;
 
   // Scroll region start Y position.
-  int scrollRegionY;  // In [0, height).
-  int scrollRegionHeight;  // In [0, height-scrollRegionY].
+  int scrollRegionY; // In [0, height).
+  int scrollRegionHeight; // In [0, height-scrollRegionY].
 
   // Automatically wrap and advance to next line (and possibly scroll) at end of
   // line (else just stay at the end of the line).
@@ -175,8 +174,8 @@ class TerminalModel {
 
   // Saved cursor position.
   bool haveSavedCursor;
-  int savedCursorX;  // In [0, width).
-  int savedCursorY;  // In [0, height).
+  int savedCursorX; // In [0, width).
+  int savedCursorY; // In [0, height).
 
   // List of tabstop flags, of length |width|.
   List<bool> tabstops;
@@ -195,12 +194,12 @@ class TerminalModel {
 
   TerminalModelState state;
   // Valid only in the CSI states.
-  int _csiC1;  // Optional leading character (0 if not present).
-  List<int> _csiParams;  // Always non-null.
-  int _csiC2;  // Optional trailing character (o if not present).
+  int _csiC1; // Optional leading character (0 if not present).
+  List<int> _csiParams; // Always non-null.
+  int _csiC2; // Optional trailing character (o if not present).
 
-  TerminalModel(this.delegate, {this.width: 80, this.height: 24,
-      this.maxScrollback: 1000}) {
+  TerminalModel(this.delegate,
+      {this.width: 80, this.height: 24, this.maxScrollback: 1000}) {
     assert(delegate != null);
     _reset(true);
     _csiParams = new List<int>();
@@ -232,35 +231,35 @@ class TerminalModel {
   void _normalPutChar(int char) {
     if (char < 32) {
       switch (char) {
-        case 0:  // NUL (^@/'\0').
+        case 0: // NUL (^@/'\0').
           // Just ignore it.
           break;
-        case 5:  // ENQ (^E).
+        case 5: // ENQ (^E).
           // TODO(vtl): Could provide a response string.
           break;
-        case 7:  // BEL (^G/'\a').
+        case 7: // BEL (^G/'\a').
           delegate.bell();
           break;
-        case 8:  // BS (^H/'\b').
+        case 8: // BS (^H/'\b').
           if (cursorX > 0) {
             cursorX--;
           }
           break;
-        case 9:  // TAB (^I/'\t').
+        case 9: // TAB (^I/'\t').
           while (cursorX < width - 1 && !tabstops[cursorX + 1]) {
             cursorX++;
           }
           break;
-        case 10:  // LF (^J/'\n').
-        case 11:  // VT (^K).
-        case 12:  // FF (^L).
+        case 10: // LF (^J/'\n').
+        case 11: // VT (^K).
+        case 12: // FF (^L).
           _advanceLine();
           cursorX = 0;
           break;
-        case 13:  // CR (^M/'\r').
+        case 13: // CR (^M/'\r').
           cursorX = 0;
           break;
-        case 27:  // ESC.
+        case 27: // ESC.
           state = TerminalModelState.ESCAPE;
           break;
         default:
@@ -289,16 +288,16 @@ class TerminalModel {
       // Commands of the form ESC C1 C2:
 
       // Unimplemented.
-      case 32:  // SP (' ').
-      case 35:  // '#'.
-      case 37:  // '%'.
-      case 40:  // '('.
-      case 41:  // ')'.
-      case 42:  // '*'.
-      case 43:  // '+'.
-      case 45:  // '-'.
-      case 46:  // '.'.
-      case 47:  // '/'.
+      case 32: // SP (' ').
+      case 35: // '#'.
+      case 37: // '%'.
+      case 40: // '('.
+      case 41: // ')'.
+      case 42: // '*'.
+      case 43: // '+'.
+      case 45: // '-'.
+      case 46: // '.'.
+      case 47: // '/'.
         // We'll be liberal and eat any printable C2.
         state = TerminalModelState.EAT_NORMAL;
         break;
@@ -306,22 +305,22 @@ class TerminalModel {
       // Commands of the form ESC C:
 
       // Unimplemented.
-      case 54:  // '6'. TODO(vtl): Cursor left, but may scroll left?
-      case 57:  // '9'. TODO(vtl): Cursor right, but may scroll right?
-      case 61:  // '='.
-      case 62:  // '>'.
-      case 70:  // 'F'.
-      case 108:  // 'l'.
-      case 109:  // 'm'.
-      case 110:  // 'n'.
-      case 111:  // 'o'.
-      case 124:  // '|'.
-      case 125:  // '}'.
-      case 126:  // '~'.
+      case 54: // '6'. TODO(vtl): Cursor left, but may scroll left?
+      case 57: // '9'. TODO(vtl): Cursor right, but may scroll right?
+      case 61: // '='.
+      case 62: // '>'.
+      case 70: // 'F'.
+      case 108: // 'l'.
+      case 109: // 'm'.
+      case 110: // 'n'.
+      case 111: // 'o'.
+      case 124: // '|'.
+      case 125: // '}'.
+      case 126: // '~'.
         state = TerminalModelState.NORMAL;
         break;
 
-      case 55:  // '7': Save cursor.
+      case 55: // '7': Save cursor.
         // TODO(vtl): Do I need to save attributes? (Which ones?)
         haveSavedCursor = true;
         savedCursorX = cursorX;
@@ -329,22 +328,22 @@ class TerminalModel {
         state = TerminalModelState.NORMAL;
         break;
 
-      case 56:  // '8': Restore cursor.
+      case 56: // '8': Restore cursor.
         if (haveSavedCursor) {
           // TODO(vtl): Do I need to restore attributes? (Which ones?)
           cursorX = savedCursorX;
           cursorY = savedCursorY;
-        }  // Else ignore.
+        } // Else ignore.
         state = TerminalModelState.NORMAL;
         break;
 
-      case 99:  // 'c': Full reset.
+      case 99: // 'c': Full reset.
         _reset(false);
         break;
 
       // Commands using CSI (ESC '[' ...). See description of CSIn states for
       // more details.
-      case 91:  // '['.
+      case 91: // '['.
         _csiStart();
         state = TerminalModelState.CSI1;
         break;
@@ -397,13 +396,15 @@ class TerminalModel {
       return;
     }
 
-    if (char >= 48 && char <= 57) {  // Digit.
+    if (char >= 48 && char <= 57) {
+      // Digit.
       _csiHandleDigit(char);
       state = TerminalModelState.CSI2;
       return;
     }
 
-    if (char == 59) {  // ';'.
+    if (char == 59) {
+      // ';'.
       _csiHandleSemicolon();
       state = TerminalModelState.CSI2;
       return;
@@ -471,74 +472,85 @@ class TerminalModel {
     assert(_csiIsC3(C3));
 
     switch (C3) {
-      case 64:  // '@'.
+      case 64: // '@'.
         // TODO(vtl): What does this do?
         break;
-      case 65:  // 'A': Cursor up.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 65: // 'A': Cursor up.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         cursorY = _clampY(cursorY - _clamp(1, _csiParams[0], height - 1));
         break;
-      case 66:  // 'B': Cursor down.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 66: // 'B': Cursor down.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         cursorY = _clampY(cursorY + _clamp(1, _csiParams[0], height - 1));
         break;
-      case 67:  // 'C': Cursor forward.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 67: // 'C': Cursor forward.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         cursorX = _clampX(cursorX + _clamp(1, _csiParams[0], width - 1));
         break;
-      case 68:  // 'D': Cursor backward.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 68: // 'D': Cursor backward.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         cursorX = _clampX(cursorX - _clamp(1, _csiParams[0], width - 1));
         break;
-      case 69:  // 'E': Cursor next line.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 69: // 'E': Cursor next line.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         cursorX = 0;
         cursorY = _clampY(cursorY + _clamp(1, _csiParams[0], height - 1));
         break;
-      case 70:  // 'F': Cursor previous line.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 70: // 'F': Cursor previous line.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         cursorX = 0;
         cursorY = _clampY(cursorY - _clamp(1, _csiParams[0], height - 1));
         break;
-      case 71:  // 'G'.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 71: // 'G'.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         cursorX = _clampX(_csiGetParam(0) - 1);
         break;
-      case 72:  // 'H'.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 72: // 'H'.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         cursorY = _clampY(_csiGetParam(0) - 1);
         cursorX = _clampX(_csiGetParam(1) - 1);
         break;
-      case 73: {  // 'I'.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 73:
+        {
+          // 'I'.
+          if (_csiC1 != 0) {
+            // Only accept no C1.
+            break;
+          }
+          var n = _clamp(1, _csiParams[0], width - 1);
+          for (var i = 0; i < n && cursorX < width - 1;) {
+            cursorX++;
+            if (tabstops[cursorX]) {
+              i++;
+            }
+          }
           break;
         }
-        var n = _clamp(1, _csiParams[0], width - 1);
-        for (var i = 0; i < n && cursorX < width - 1;) {
-          cursorX++;
-          if (tabstops[cursorX]) {
-            i++;
-          }
-        }
-        break;
-      }
-      case 74:  // 'J'.
+      case 74: // 'J'.
         // P = 0: Erase below, and current line from cursor (inclusive) to the
         //        end.
         // P = 1: Erase above, and current line from cursor (inclusive) to the
@@ -551,30 +563,33 @@ class TerminalModel {
         //
         // C1 = '?' means "selective erase". (TODO(vtl): Figure out how this
         // differs from normal/unselective erase.)
-        if (_csiC1 != 0 && _csiC1 != 63) {  // Only accept no C1 or C1 = '?'.
+        if (_csiC1 != 0 && _csiC1 != 63) {
+          // Only accept no C1 or C1 = '?'.
           break;
         }
         switch (_csiParams[0]) {
-          case 0: {
-            var l = _currentLine();
-            for (var x = cursorX; x < width; x++) {
-              l.setAt(x,kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+          case 0:
+            {
+              var l = _currentLine();
+              for (var x = cursorX; x < width; x++) {
+                l.setAt(x, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+              }
+              for (var y = cursorY + 1; y < height; y++) {
+                lines[lines.length - height + y] = _newBlankLine();
+              }
+              break;
             }
-            for (var y = cursorY + 1; y < height; y++) {
-              lines[lines.length - height + y] = _newBlankLine();
+          case 1:
+            {
+              var l = _currentLine();
+              for (var x = cursorX; x >= 0; x--) {
+                l.setAt(x, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+              }
+              for (var y = cursorY - 1; y >= 0; y--) {
+                lines[lines.length - height + y] = _newBlankLine();
+              }
+              break;
             }
-            break;
-          }
-          case 1: {
-            var l = _currentLine();
-            for (var x = cursorX; x >= 0; x--) {
-              l.setAt(x,kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
-            }
-            for (var y = cursorY - 1; y >= 0; y--) {
-              lines[lines.length - height + y] = _newBlankLine();
-            }
-            break;
-          }
           case 2:
             for (var y = 0; y < height; y++) {
               lines[lines.length - height + y] = _newBlankLine();
@@ -588,27 +603,30 @@ class TerminalModel {
             break;
         }
         break;
-      case 75:  // 'K'.
+      case 75: // 'K'.
         // Similar to 'J' above, but only for the current line (and P = 3 is not
         // valid/specified).
-        if (_csiC1 != 0 && _csiC1 != 63) {  // Only accept no C1 or C1 = '?'.
+        if (_csiC1 != 0 && _csiC1 != 63) {
+          // Only accept no C1 or C1 = '?'.
           break;
         }
         switch (_csiParams[0]) {
-          case 0: {
-            var l = _currentLine();
-            for (var x = cursorX; x < width; x++) {
-              l.setAt(x,kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+          case 0:
+            {
+              var l = _currentLine();
+              for (var x = cursorX; x < width; x++) {
+                l.setAt(x, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+              }
+              break;
             }
-            break;
-          }
-          case 1: {
-            var l = _currentLine();
-            for (var x = cursorX; x >= 0; x--) {
-              l.setAt(x,kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+          case 1:
+            {
+              var l = _currentLine();
+              for (var x = cursorX; x >= 0; x--) {
+                l.setAt(x, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+              }
+              break;
             }
-            break;
-          }
           case 2:
             lines[lines.length - height + cursorY] = _newBlankLine();
             break;
@@ -617,128 +635,147 @@ class TerminalModel {
             break;
         }
         break;
-      case 76: {  // 'L': Insert lines.
-        // Inserts blank lines "at" current line (moves current and below lines
-        // "down"). Leaves cursor on the same row but in the first column.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 76:
+        {
+          // 'L': Insert lines.
+          // Inserts blank lines "at" current line (moves current and below lines
+          // "down"). Leaves cursor on the same row but in the first column.
+          if (_csiC1 != 0) {
+            // Only accept no C1.
+            break;
+          }
+          var n = _clamp(1, _csiParams[0], height - cursorY);
+          for (var i = 0; i < n; i++) {
+            lines.insert(lines.length - height + cursorY, _newBlankLine());
+            lines.removeLast();
+          }
+          cursorX = 0;
           break;
         }
-        var n = _clamp(1, _csiParams[0], height - cursorY);
-        for (var i = 0; i < n; i++) {
-          lines.insert(lines.length - height + cursorY, _newBlankLine());
-          lines.removeLast();
-        }
-        cursorX = 0;
-        break;
-      }
-      case 77: {  // 'M': Delete lines.
-        // Deletes lines starting at current line (moves lines below "up",
-        // inserting blank lines at the bottom). Leaves cursor on the same row
-        // but in the first column.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 77:
+        {
+          // 'M': Delete lines.
+          // Deletes lines starting at current line (moves lines below "up",
+          // inserting blank lines at the bottom). Leaves cursor on the same row
+          // but in the first column.
+          if (_csiC1 != 0) {
+            // Only accept no C1.
+            break;
+          }
+          var n = _clamp(1, _csiParams[0], height - cursorY);
+          for (var i = 0; i < n; i++) {
+            lines.removeAt(lines.length - height + cursorY);
+            lines.add(_newBlankLine());
+          }
+          cursorX = 0;
           break;
         }
-        var n = _clamp(1, _csiParams[0], height - cursorY);
-        for (var i = 0; i < n; i++) {
-          lines.removeAt(lines.length - height + cursorY);
-          lines.add(_newBlankLine());
-        }
-        cursorX = 0;
+      case 78: // 'N': Not actually valid/specified.
         break;
-      }
-      case 78:  // 'N': Not actually valid/specified.
+      case 79: // 'O': Not actually valid/specified.
         break;
-      case 79:  // 'O': Not actually valid/specified.
-        break;
-      case 80: {  // 'P': Delete characers.
-        if (_csiC1 != 0) {  // Only accept no C1.
-          break;
-        }
-        var l = _currentLine();
-        var n = _clamp(1, _csiParams[0], width - cursorX);
-        var x = cursorX;
-        for (; x < cursorX + n; x++) {
-          if (x + n < width) {
-            l.setAt(x, l.characters[x + n], l.fgColors[x + n],
-                l.bgColors[x + n], l.attributeFlags[x + n]);
-          } else {
+      case 80:
+        {
+          // 'P': Delete characers.
+          if (_csiC1 != 0) {
+            // Only accept no C1.
+            break;
+          }
+          var l = _currentLine();
+          var n = _clamp(1, _csiParams[0], width - cursorX);
+          var x = cursorX;
+          for (; x < cursorX + n; x++) {
+            if (x + n < width) {
+              l.setAt(x, l.characters[x + n], l.fgColors[x + n],
+                  l.bgColors[x + n], l.attributeFlags[x + n]);
+            } else {
+              l.setAt(x, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+            }
+          }
+          for (; x < width; x++) {
             l.setAt(x, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
           }
-        }
-        for (; x < width; x++) {
-          l.setAt(x, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
-        }
-        break;
-      }
-      case 81:  // 'Q': Not actually valid/specified.
-        break;
-      case 82:  // 'R': Not actually valid/specified.
-        break;
-      case 83: {  // 'S': Scroll up.
-        // Adds blank lines at the bottom, scrolling the rest of the screen up.
-        // Leaves the cursor in the current position.
-        // TODO(vtl): C1 = '?' is actually specified (for Sixel or ReGIS
-        // Graphics). Haha.
-        if (_csiC1 != 0) {  // Only accept no C1.
           break;
         }
-        // We'll clamp this at |height|, but allow the scrolled-up contents to
-        // go into scrollback.
-        var n = _clamp(1, _csiParams[0], height);
-        for (var i = 0; i < n; i++) {
-          lines.add(_newBlankLine());
-        }
-        while (lines.length > height + maxScrollback) {
-          lines.removeAt(0);
-        }
+      case 81: // 'Q': Not actually valid/specified.
         break;
-      }
-      case 84: {  // 'T': Scroll down.
-        // Adds blank lines at the top, scrolling the rest of the screen down.
-        // Leaves the cursor in the current position.
-        // TODO(vtl): C1 = '>' is actually specified (reset title mode
-        // features).
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 82: // 'R': Not actually valid/specified.
+        break;
+      case 83:
+        {
+          // 'S': Scroll up.
+          // Adds blank lines at the bottom, scrolling the rest of the screen up.
+          // Leaves the cursor in the current position.
+          // TODO(vtl): C1 = '?' is actually specified (for Sixel or ReGIS
+          // Graphics). Haha.
+          if (_csiC1 != 0) {
+            // Only accept no C1.
+            break;
+          }
+          // We'll clamp this at |height|, but allow the scrolled-up contents to
+          // go into scrollback.
+          var n = _clamp(1, _csiParams[0], height);
+          for (var i = 0; i < n; i++) {
+            lines.add(_newBlankLine());
+          }
+          while (lines.length > height + maxScrollback) {
+            lines.removeAt(0);
+          }
           break;
         }
-        // TODO(vtl): A 5-parameter version (no C1) is actually specified
-        // (initiate mouse highlight tracking). But xterm ignores 2-4 parameter
-        // sequences.
-        if (_csiParams.length > 1) {
+      case 84:
+        {
+          // 'T': Scroll down.
+          // Adds blank lines at the top, scrolling the rest of the screen down.
+          // Leaves the cursor in the current position.
+          // TODO(vtl): C1 = '>' is actually specified (reset title mode
+          // features).
+          if (_csiC1 != 0) {
+            // Only accept no C1.
+            break;
+          }
+          // TODO(vtl): A 5-parameter version (no C1) is actually specified
+          // (initiate mouse highlight tracking). But xterm ignores 2-4 parameter
+          // sequences.
+          if (_csiParams.length > 1) {
+            break;
+          }
+          var n = _clamp(1, _csiParams[0], height);
+          for (var i = 0; i < n; i++) {
+            lines.insert(lines.length - height, _newBlankLine());
+            lines.removeLast();
+          }
           break;
         }
-        var n = _clamp(1, _csiParams[0], height);
-        for (var i = 0; i < n; i++) {
-          lines.insert(lines.length - height, _newBlankLine());
-          lines.removeLast();
-        }
+      case 85: // 'U': Not actually valid/specified.
         break;
-      }
-      case 85:  // 'U': Not actually valid/specified.
+      case 86: // 'V': Not actually valid/specified.
         break;
-      case 86:  // 'V': Not actually valid/specified.
+      case 87: // 'W': Not actually valid/specified.
         break;
-      case 87:  // 'W': Not actually valid/specified.
-        break;
-      case 88: {  // 'X': Erase characters.
-        // Starting at the current position, *replaces* characters on the
-        // current line with blank characters. Leaves the cursor in the current
-        // position.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 88:
+        {
+          // 'X': Erase characters.
+          // Starting at the current position, *replaces* characters on the
+          // current line with blank characters. Leaves the cursor in the current
+          // position.
+          if (_csiC1 != 0) {
+            // Only accept no C1.
+            break;
+          }
+          var l = _currentLine();
+          var n = _clamp(1, _csiParams[0], width - cursorX);
+          for (var i = 0; i < n; i++) {
+            l.setAt(
+                cursorX + i, kTerminalModelUnfilledSpace, fgColor, bgColor, 0);
+          }
           break;
         }
-        var l = _currentLine();
-        var n = _clamp(1, _csiParams[0], width - cursorX);
-        for (var i = 0; i < n; i++) {
-          l.setAt(cursorX + i, kTerminalModelUnfilledSpace, fgColor, bgColor,
-              0);
-        }
+      case 89: // 'Y': Not actually valid/specified.
         break;
-      }
-      case 89:  // 'Y': Not actually valid/specified.
-        break;
-      case 90:  // 'Z': Cursor backward tabulation.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 90: // 'Z': Cursor backward tabulation.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         // TODO(vtl): Check that this is remotely correct.
@@ -749,49 +786,55 @@ class TerminalModel {
           }
         }
         break;
-      case 96:  // '`': Character position absolute.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 96: // '`': Character position absolute.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         cursorX = _clampX(_clamp(1, _csiParams[0], width) - 1);
         break;
-      case 97:  // 'a': Character position relative.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 97: // 'a': Character position relative.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         cursorX = _clampX(cursorX + _clamp(1, _csiParams[0], width));
         break;
-      case 98:  // 'b': Repeat the preceding graphic character.
+      case 98: // 'b': Repeat the preceding graphic character.
         // TODO(vtl): FIXME soon.
         assert(!assertFailOnUnimplemented);
         break;
-      case 99:  // 'c': Send device attributes.
+      case 99: // 'c': Send device attributes.
         // TODO(vtl): FIXME soon.
         assert(!assertFailOnUnimplemented);
         break;
-      case 100:  // 'd': Line position absolute.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 100: // 'd': Line position absolute.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         cursorY = _clampY(_clamp(1, _csiParams[0], height) - 1);
         break;
-      case 101:  // 'e': Line position relative.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 101: // 'e': Line position relative.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         cursorY = _clampY(cursorY + _clamp(1, _csiParams[0], height));
         break;
-      case 102:  // 'f': Horizontal and vertical position.
-        if (_csiC1 != 0) {  // Only accept no C1.
+      case 102: // 'f': Horizontal and vertical position.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         cursorY = _clampY(_clamp(1, _csiParams[0], height) - 1);
         cursorX = _clampX(_clamp(1, _csiGetParam(1), width) - 1);
         break;
-      case 103:  // 'g': Tab clear.
+      case 103: // 'g': Tab clear.
         // P = 0: Current column.
         // P = 3: All.
-        if (_csiC1 != 0) {  // Only accept no C1.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         switch (_csiParams[0]) {
@@ -805,8 +848,9 @@ class TerminalModel {
             break;
         }
         break;
-      case 104:  // 'h': Set mode.
-        if (_csiC1 == 0) {  // No C1.
+      case 104: // 'h': Set mode.
+        if (_csiC1 == 0) {
+          // No C1.
           switch (_csiParams[0]) {
             case 2:
             case 4:
@@ -819,7 +863,8 @@ class TerminalModel {
               assert(!assertFailOnUnknown);
               break;
           }
-        } else if (_csiC1 == 63) {  // C1 = '?'.
+        } else if (_csiC1 == 63) {
+          // C1 = '?'.
           switch (_csiParams[0]) {
             case 1:
             case 2:
@@ -828,14 +873,14 @@ class TerminalModel {
               // TODO(vtl): FIXME soon.
               assert(!assertFailOnUnimplemented);
               break;
-            case 5:  // Reverse video.
+            case 5: // Reverse video.
               reverseVideo = true;
               break;
             case 6:
               // TODO(vtl): FIXME soon.
               assert(!assertFailOnUnimplemented);
               break;
-            case 7:  // Wraparound mode.
+            case 7: // Wraparound mode.
               autoWrap = true;
               break;
             case 8:
@@ -845,15 +890,15 @@ class TerminalModel {
               // TODO(vtl): FIXME soon.
               assert(!assertFailOnUnimplemented);
               break;
-            case 18:  // Print form feed.
+            case 18: // Print form feed.
               break;
-            case 19:  // Set print extent to full screen.
+            case 19: // Set print extent to full screen.
               break;
-            case 25:  // Show cursor.
+            case 25: // Show cursor.
               cursorVisible = true;
               break;
-            case 30:  // Show scrollbar.
-            case 35:  // Enable font-shifting functions.
+            case 30: // Show scrollbar.
+            case 35: // Enable font-shifting functions.
             case 38:
             case 40:
             case 41:
@@ -905,16 +950,17 @@ class TerminalModel {
           }
         }
         break;
-      case 105:  // 'i': Media copy.
+      case 105: // 'i': Media copy.
         // TODO(vtl): FIXME soon.
         assert(!assertFailOnUnimplemented);
         break;
-      case 106:  // 'j': Not actually valid/specified.
+      case 106: // 'j': Not actually valid/specified.
         break;
-      case 107:  // 'k': Not actually valid/specified.
+      case 107: // 'k': Not actually valid/specified.
         break;
-      case 108:  // 'l': Reset mode.
-        if (_csiC1 == 0) {  // No C1.
+      case 108: // 'l': Reset mode.
+        if (_csiC1 == 0) {
+          // No C1.
           switch (_csiParams[0]) {
             case 2:
             case 4:
@@ -927,7 +973,8 @@ class TerminalModel {
               assert(!assertFailOnUnknown);
               break;
           }
-        } else if (_csiC1 == 63) {  // C1 = '?'.
+        } else if (_csiC1 == 63) {
+          // C1 = '?'.
           switch (_csiParams[0]) {
             case 1:
             case 2:
@@ -943,7 +990,7 @@ class TerminalModel {
               // TODO(vtl): FIXME soon.
               assert(!assertFailOnUnimplemented);
               break;
-            case 7:  // Wraparound mode.
+            case 7: // Wraparound mode.
               // TODO(vtl): FIXME soon.
               assert(!assertFailOnUnimplemented);
               autoWrap = false;
@@ -955,15 +1002,15 @@ class TerminalModel {
               // TODO(vtl): FIXME soon.
               assert(!assertFailOnUnimplemented);
               break;
-            case 18:  // Don't print form feed.
+            case 18: // Don't print form feed.
               break;
-            case 19:  // Limit print to scrolling region.
+            case 19: // Limit print to scrolling region.
               break;
-            case 25:  // Hide cursor.
+            case 25: // Hide cursor.
               cursorVisible = false;
               break;
-            case 30:  // Don't show scrollbar.
-            case 35:  // Disable font-shifting functions.
+            case 30: // Don't show scrollbar.
+            case 35: // Disable font-shifting functions.
             case 38:
             case 40:
             case 41:
@@ -1015,121 +1062,122 @@ class TerminalModel {
           }
         }
         break;
-      case 109:  // 'm': Character attributes.
+      case 109: // 'm': Character attributes.
         // TODO(vtl): C1 = '>' is actually specified (for xterm).
-        if (_csiC1 != 0) {  // Only accept no C1.
+        if (_csiC1 != 0) {
+          // Only accept no C1.
           break;
         }
         switch (_csiParams[0]) {
-          case 0:  // Normal.
+          case 0: // Normal.
             attributeFlags = 0;
             break;
-          case 1:  // Bold.
+          case 1: // Bold.
             attributeFlags |= kAttributeFlagBold;
             break;
-          case 2:  // Faint.
+          case 2: // Faint.
             attributeFlags |= kAttributeFlagFaint;
             break;
-          case 3:  // Italicized.
+          case 3: // Italicized.
             attributeFlags |= kAttributeFlagItalicized;
             break;
-          case 4:  // Underlined.
+          case 4: // Underlined.
             attributeFlags |= kAttributeFlagUnderlined;
             // TODO(vtl): Is unsetting doubly-underlined right?
             attributeFlags &= ~kAttributeFlagDoublyUnderlined;
             break;
-          case 5:  // Blink.
+          case 5: // Blink.
             attributeFlags |= kAttributeFlagBlink;
             break;
-          case 7:  // Inverse.
+          case 7: // Inverse.
             attributeFlags |= kAttributeFlagInverse;
             break;
-          case 8:  // Invisible.
+          case 8: // Invisible.
             attributeFlags |= kAttributeFlagInvisible;
             break;
-          case 9:  // Crossed-out characters.
+          case 9: // Crossed-out characters.
             attributeFlags |= kAttributeFlagCrossedOut;
             break;
-          case 21:  // Doubly-underlined.
+          case 21: // Doubly-underlined.
             attributeFlags |= kAttributeFlagDoublyUnderlined;
             // TODO(vtl): Is unsetting (singly-)underlined right?
             attributeFlags &= ~kAttributeFlagUnderlined;
             break;
-          case 22:  // Normal (neither bold nor faint).
+          case 22: // Normal (neither bold nor faint).
             attributeFlags &= ~(kAttributeFlagBold | kAttributeFlagFaint);
             break;
-          case 23:  // Not italicized.
+          case 23: // Not italicized.
             attributeFlags &= ~kAttributeFlagItalicized;
             break;
-          case 24:  // Not underlined.
+          case 24: // Not underlined.
             attributeFlags &= ~kAttributeFlagUnderlined;
             // TODO(vtl): Is unsetting doubly-underlined right?
             attributeFlags &= ~kAttributeFlagDoublyUnderlined;
             break;
-          case 25:  // Steady (not blinking).
+          case 25: // Steady (not blinking).
             attributeFlags &= ~kAttributeFlagBlink;
             break;
-          case 27:  // Positive (not inverse).
+          case 27: // Positive (not inverse).
             attributeFlags &= ~kAttributeFlagInverse;
             break;
-          case 28:  // Visible, i.e., not invisible.
+          case 28: // Visible, i.e., not invisible.
             attributeFlags &= ~kAttributeFlagInvisible;
             break;
-          case 29:  // Not crossed-out (ISO 6429).
+          case 29: // Not crossed-out (ISO 6429).
             attributeFlags &= ~kAttributeFlagCrossedOut;
             break;
-          case 30:  // Set foreground color to Black.
-          case 31:  // Set foreground color to Red.
-          case 32:  // Set foreground color to Green.
-          case 33:  // Set foreground color to Yellow.
-          case 34:  // Set foreground color to Blue.
-          case 35:  // Set foreground color to Magenta.
-          case 36:  // Set foreground color to Cyan.
-          case 37:  // Set foreground color to White.
+          case 30: // Set foreground color to Black.
+          case 31: // Set foreground color to Red.
+          case 32: // Set foreground color to Green.
+          case 33: // Set foreground color to Yellow.
+          case 34: // Set foreground color to Blue.
+          case 35: // Set foreground color to Magenta.
+          case 36: // Set foreground color to Cyan.
+          case 37: // Set foreground color to White.
             fgColor = delegate.mapIndexToColor(_csiParams[0] - 30);
             break;
-          case 39:  // Set foreground color to default (original).
+          case 39: // Set foreground color to default (original).
             // TODO(vtl): Hmmm.
             fgColor = delegate.mapIndexToColor(7);
             break;
-          case 40:  // Set background color to Black.
-          case 41:  // Set background color to Red.
-          case 42:  // Set background color to Green.
-          case 43:  // Set background color to Yellow.
-          case 44:  // Set background color to Blue.
-          case 45:  // Set background color to Magenta.
-          case 46:  // Set background color to Cyan.
-          case 47:  // Set background color to White.
+          case 40: // Set background color to Black.
+          case 41: // Set background color to Red.
+          case 42: // Set background color to Green.
+          case 43: // Set background color to Yellow.
+          case 44: // Set background color to Blue.
+          case 45: // Set background color to Magenta.
+          case 46: // Set background color to Cyan.
+          case 47: // Set background color to White.
             bgColor = delegate.mapIndexToColor(_csiParams[0] - 40);
             break;
-          case 49:  // Set background color to default (original).
+          case 49: // Set background color to default (original).
             bgColor = delegate.mapIndexToColor(0);
             break;
 
           // 16-color support:
-          case 90:  // Set foreground color to Black.
-          case 91:  // Set foreground color to Red.
-          case 92:  // Set foreground color to Green.
-          case 93:  // Set foreground color to Yellow.
-          case 94:  // Set foreground color to Blue.
-          case 95:  // Set foreground color to Magenta.
-          case 96:  // Set foreground color to Cyan.
-          case 97:  // Set foreground color to White.
+          case 90: // Set foreground color to Black.
+          case 91: // Set foreground color to Red.
+          case 92: // Set foreground color to Green.
+          case 93: // Set foreground color to Yellow.
+          case 94: // Set foreground color to Blue.
+          case 95: // Set foreground color to Magenta.
+          case 96: // Set foreground color to Cyan.
+          case 97: // Set foreground color to White.
             fgColor = delegate.mapIndexToColor(8 + _csiParams[0] - 90);
             break;
-          case 100:  // Set background color to Black.
-          case 101:  // Set background color to Red.
-          case 102:  // Set background color to Green.
-          case 103:  // Set background color to Yellow.
-          case 104:  // Set background color to Blue.
-          case 105:  // Set background color to Magenta.
-          case 106:  // Set background color to Cyan.
-          case 107:  // Set background color to White.
+          case 100: // Set background color to Black.
+          case 101: // Set background color to Red.
+          case 102: // Set background color to Green.
+          case 103: // Set background color to Yellow.
+          case 104: // Set background color to Blue.
+          case 105: // Set background color to Magenta.
+          case 106: // Set background color to Cyan.
+          case 107: // Set background color to White.
             bgColor = delegate.mapIndexToColor(8 + _csiParams[0] - 100);
             break;
 
           // ISO-8613-3 color support:
-          case 38:  // Set foreground color.
+          case 38: // Set foreground color.
             if (_csiParams.length == 5 && _csiParams[1] == 2) {
               // Match RGB.
               fgColor = delegate.mapRGBToColor(_clamp(0, _csiParams[2], 255),
@@ -1139,7 +1187,7 @@ class TerminalModel {
               fgColor = delegate.mapIndexToColor(_clamp(0, _csiParams[2], 255));
             }
             break;
-          case 48:  // Set background color.
+          case 48: // Set background color.
             if (_csiParams.length == 5 && _csiParams[1] == 2) {
               // Match RGB.
               bgColor = delegate.mapRGBToColor(_clamp(0, _csiParams[2], 255),
@@ -1154,54 +1202,58 @@ class TerminalModel {
             break;
         }
         break;
-      case 110:  // 'n': Device status report.
+      case 110: // 'n': Device status report.
         // TODO(vtl): FIXME soon.
         assert(!assertFailOnUnimplemented);
         break;
-      case 111:  // 'o'.
-      case 112:  // 'p'.
-      case 113:  // 'q'.
+      case 111: // 'o'.
+      case 112: // 'p'.
+      case 113: // 'q'.
         // TODO(vtl): FIXME soon.
         assert(!assertFailOnUnimplemented);
         break;
-      case 114:  // 'r'.
-        if (_csiC1 == 0) {  // No C1.
+      case 114: // 'r'.
+        if (_csiC1 == 0) {
+          // No C1.
           if (_csiParams.length == 1) {
             scrollRegionY = _clamp(1, _csiParams[0], height - 1);
             scrollRegionHeight = height - scrollRegionY;
           } else {
             if (_csiParams[1] >= _csiParams[0]) {
               scrollRegionY = _clamp(1, _csiParams[0], height - 1);
-              scrollRegionHeight = _clamp(0, _csiParams[1] - _csiParams[0] + 1,
-                  height - scrollRegionY);
+              scrollRegionHeight = _clamp(
+                  0, _csiParams[1] - _csiParams[0] + 1, height - scrollRegionY);
             }
           }
-        } else if (_csiC1 == 63) {  // C1 = '?'.
+        } else if (_csiC1 == 63) {
+          // C1 = '?'.
           // TODO(vtl): FIXME soon.
           assert(!assertFailOnUnimplemented);
         }
         break;
-      case 115:  // 's'.
-        if (_csiC1 == 0) {  // No C1.
+      case 115: // 's'.
+        if (_csiC1 == 0) {
+          // No C1.
           haveSavedCursor = true;
           savedCursorX = cursorX;
           savedCursorY = cursorY;
-        } else if (_csiC1 == 63) {  // C1 = '?'.
+        } else if (_csiC1 == 63) {
+          // C1 = '?'.
           // TODO(vtl): FIXME soon.
           assert(!assertFailOnUnimplemented);
         }
         break;
-      case 116:  // 't'.
-      case 117:  // 'u'.
-      case 118:  // 'v'.
-      case 119:  // 'w'.
-      case 120:  // 'x'.
-      case 121:  // 'y'.
-      case 122:  // 'z'.
-      case 123:  // '{'.
-      case 124:  // '|'.
-      case 125:  // '}'.
-      case 126:  // '~'.
+      case 116: // 't'.
+      case 117: // 'u'.
+      case 118: // 'v'.
+      case 119: // 'w'.
+      case 120: // 'x'.
+      case 121: // 'y'.
+      case 122: // 'z'.
+      case 123: // '{'.
+      case 124: // '|'.
+      case 125: // '}'.
+      case 126: // '~'.
         // TODO(vtl): FIXME soon.
         assert(!assertFailOnUnimplemented);
         break;
@@ -1215,9 +1267,8 @@ class TerminalModel {
 
   int _csiGetParam(int index) => _listGet(_csiParams, index);
 
-  TerminalModelLine _newBlankLine() =>
-      new TerminalModelLine(width, kTerminalModelUnfilledSpace, fgColor,
-          bgColor, attributeFlags);
+  TerminalModelLine _newBlankLine() => new TerminalModelLine(
+      width, kTerminalModelUnfilledSpace, fgColor, bgColor, attributeFlags);
 
   TerminalModelLine _currentLine() => lines[lines.length - height + cursorY];
 
@@ -1314,15 +1365,16 @@ class TerminalModel {
     if (amount > 0) {
       for (var i = 0; i < scrollRegionHeight; i++) {
         var j = i + amount;
-        lines[scrollRegionY + i] = (j < scrollRegionHeight) ?
-            lines[scrollRegionY + j] : _newBlankLine();
+        lines[scrollRegionY + i] = (j < scrollRegionHeight)
+            ? lines[scrollRegionY + j]
+            : _newBlankLine();
       }
     } else if (amount < 0) {
       for (var i = scrollRegionHeight; i > 0;) {
         i--;
         var j = i + amount;
-        lines[scrollRegionY + i] = (j >= 0) ? lines[scrollRegionY + j] :
-            _newBlankLine();
+        lines[scrollRegionY + i] =
+            (j >= 0) ? lines[scrollRegionY + j] : _newBlankLine();
       }
     }
   }

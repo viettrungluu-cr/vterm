@@ -24,12 +24,10 @@ class SimpleTerminalModelDelegate implements TerminalModelDelegate {
   }
 
   @override
-  void bell() {
-  }
+  void bell() {}
 
   @override
-  void putResponseChar(int char) {
-  }
+  void putResponseChar(int char) {}
 }
 
 void main(List<String> arguments) {
