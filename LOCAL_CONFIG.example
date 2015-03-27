@@ -1,0 +1,4 @@
+# LOCAL_CONFIG will be sourced (not executed).
+
+# Location of the the Dart SDK directory (under which should be bin, etc.).
+DART_SDK_DIR=/path/to/dart-sdk
