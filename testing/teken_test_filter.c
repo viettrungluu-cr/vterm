@@ -78,9 +78,9 @@ void FillCallback(void* ctx,
   }
 
   struct State* st = (struct State*)ctx;
-  for (unsigned row = rect->tr_begin.tp_row; row < rect->tr_begin.tp_row;
+  for (unsigned row = rect->tr_begin.tp_row; row < rect->tr_end.tp_row;
        row++) {
-    for (unsigned col = rect->tr_begin.tp_col; col < rect->tr_begin.tp_col;
+    for (unsigned col = rect->tr_begin.tp_col; col < rect->tr_end.tp_col;
          col++) {
       st->ch[row][col] = ch;
       st->attr[row][col] = *attr;
@@ -143,6 +143,50 @@ void RespondCallback(void* ctx, const void* buf, size_t size) {
 void PrintUsage(const char* argv0) {
   printf("usage: %s [option]... [--] (FILE|-)...\n\n"
          "(- indicates standard input)\n", argv0);
+}
+
+// Note: Emits ' ' for '\0'.
+void EscapedPutChar(teken_char_t c) {
+  if (c == 0) {
+    putchar(' ');
+  } else if (c < 32 || c >= 128) {
+    printf("\\u%04x", (unsigned)c);
+  } else if (c == '"' || c == '\\') {
+    printf("\\%c", (int)c);
+  } else {
+    putchar((int)c);
+  }
+}
+
+void PrintState(const struct State* st, teken_t* terminal) {
+  printf("{\n");
+
+  const teken_pos_t* size = teken_get_winsize(terminal);
+  const unsigned height = size->tp_row;
+  const unsigned width = size->tp_col;
+  assert(height <= NUM_ROWS);
+  assert(width <= T_NUMCOL);
+  printf("  \"size\": [%u, %u],\n", height, width);
+
+  printf("  \"characters\": [\n");
+  for (unsigned row = 0; row < height; row++) {
+    printf("    \"");
+    for (unsigned col = 0; col < width; col++) {
+      // Let's hope no one went all Unicode on me.
+      EscapedPutChar(st->ch[row][col]);
+    }
+    printf((row + 1 == height) ? "\"\n" : "\",\n");
+  }
+  printf("  ],\n");
+
+  const teken_pos_t* position = teken_get_cursor(terminal);
+  const unsigned row = position->tp_row;
+  const unsigned col = position->tp_col;
+  assert(row <= NUM_ROWS);
+  assert(col <= T_NUMCOL);
+  printf("  \"position\": [%u, %u]\n", row, col);
+
+  printf("}\n");
 }
 
 int main(int argc, char** argv) {
@@ -208,14 +252,7 @@ int main(int argc, char** argv) {
       fclose(fp);
   }
 
-  // Assume the standard dimensions for now.
-  for (unsigned row = 0; row < 24; row++) {
-    for (unsigned col = 0; col < 80; col++) {
-      // Let's hope no one went all Unicode on me.
-      putchar((int)st.ch[row][col]);
-    }
-    putchar('\n');
-  }
+  PrintState(&st, &terminal);
 
   return 0;
 }
