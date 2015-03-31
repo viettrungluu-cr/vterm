@@ -25,7 +25,24 @@ terminal-model-specific pipeline.
 Test output
 -----------
 
-Output shall be to standard output, in the form of JSON. TODO(vtl): specifics.
+Output shall be to standard output, in the form of JSON. Required fields (no
+comments, of course):
+
+```
+{
+  // Height in number of (normal-size) text lines; width in number of
+  // (normal-size) characters.
+  "size": [height, width],
+
+  // |height| lines of |width| characters (each line being a string).
+  "characters": ["line1...", "line2...", ...],
+
+  // Zero-based cursor position from upper-left.
+  "position": [row, column]
+}
+```
+
+TODO(vtl): colors, attributes, bell, responses (?).
 
 Terminal-model-specific pipeline
 --------------------------------
