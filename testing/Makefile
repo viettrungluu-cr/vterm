@@ -1,8 +1,8 @@
-all: teken_test
+all: teken_test_filter
 
-teken_test: teken_test.c teken.o
-	gcc -std=c99 -Wall -I.. -oteken_test \
-		teken_test.c \
+teken_test_filter: teken_test_filter.c teken.o
+	gcc -std=c99 -Wall -I.. -oteken_test_filter \
+		teken_test_filter.c \
 		teken.o
 
 teken.o: ../third_party/libteken/teken/teken.c \
