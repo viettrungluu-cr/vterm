@@ -13,4 +13,4 @@ fi
 
 SCRIPT_FILE="$1"
 shift
-"${DART_SDK_DIR}/bin/dart" -c "${SCRIPT_FILE}" $*
+exec "${DART_SDK_DIR}/bin/dart" -c "${SCRIPT_FILE}" $*
