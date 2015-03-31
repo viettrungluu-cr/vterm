@@ -141,7 +141,7 @@ void RespondCallback(void* ctx, const void* buf, size_t size) {
 }
 
 void PrintUsage(const char* argv0) {
-  printf("usage: %s [options] [--] <file|->...\n\n"
+  printf("usage: %s [option]... [--] (FILE|-)...\n\n"
          "(- indicates standard input)\n", argv0);
 }
 
