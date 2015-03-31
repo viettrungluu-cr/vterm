@@ -1,4 +1,6 @@
 #include <assert.h>
+#include <errno.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -6,6 +8,8 @@
 #include "third_party/libteken/teken/teken.h"
 
 #define NUM_ROWS 100
+
+int g_verbosity = 0;
 
 // Should be zero-initialized.
 struct State {
@@ -25,10 +29,10 @@ void CursorCallback(void* ctx, const teken_pos_t* pos) {
   assert(pos->tp_row < NUM_ROWS);
   assert(pos->tp_col < T_NUMCOL);
 
-#if 0
-  fprintf(stderr, "cursor: row=%u, col=%u\n", (unsigned)pos->tp_row,
-          (unsigned)pos->tp_col);
-#endif
+  if (g_verbosity >= 1) {
+    fprintf(stderr, "cursor: row=%u, col=%u\n", (unsigned)pos->tp_row,
+            (unsigned)pos->tp_col);
+  }
 
   struct State* st = (struct State*)ctx;
   st->cursor_pos = *pos;
@@ -44,10 +48,10 @@ void PutcharCallback(void* ctx,
   assert(pos->tp_col < T_NUMCOL);
   assert(attr);
 
-#if 0
-  fprintf(stderr, "putchar: row=%u, col=%u, ch=%u\n", (unsigned)pos->tp_row,
-          (unsigned)pos->tp_col, (unsigned)ch);
-#endif
+  if (g_verbosity >= 1) {
+    fprintf(stderr, "putchar: row=%u, col=%u, ch=%u\n", (unsigned)pos->tp_row,
+            (unsigned)pos->tp_col, (unsigned)ch);
+  }
 
   struct State* st = (struct State*)ctx;
   st->ch[pos->tp_row][pos->tp_col] = ch;
@@ -66,12 +70,12 @@ void FillCallback(void* ctx,
   assert(rect->tr_end.tp_col <= T_NUMCOL);
   assert(attr);
 
-#if 0
-  fprintf(stderr, "fill: rect=((row=%u, col=%u), (row=%u, col=%u)), ch=%u\n",
-          (unsigned)rect->tr_begin.tp_row, (unsigned)rect->tr_begin.tp_col,
-          (unsigned)rect->tr_end.tp_row, (unsigned)rect->tr_end.tp_col,
-          (unsigned)ch);
-#endif
+  if (g_verbosity >= 1) {
+    fprintf(stderr, "fill: rect=((row=%u, col=%u), (row=%u, col=%u)), ch=%u\n",
+            (unsigned)rect->tr_begin.tp_row, (unsigned)rect->tr_begin.tp_col,
+            (unsigned)rect->tr_end.tp_row, (unsigned)rect->tr_end.tp_col,
+            (unsigned)ch);
+  }
 
   struct State* st = (struct State*)ctx;
   for (unsigned row = rect->tr_begin.tp_row; row < rect->tr_begin.tp_row;
@@ -97,13 +101,13 @@ void CopyCallback(void* ctx, const teken_rect_t* rect, const teken_pos_t* pos) {
   assert(pos->tp_row + height <= NUM_ROWS);  // If height is 0, we don't care.
   assert(pos->tp_col + width <= T_NUMCOL);   // If width is 0, we don't care.
 
-#if 0
-  fprintf(stderr,
-          "copy: rect=((row=%u, col=%u), (row=%u, col=%u)), row=%u, col=%u\n",
-          (unsigned)rect->tr_begin.tp_row, (unsigned)rect->tr_begin.tp_col,
-          (unsigned)rect->tr_end.tp_row, (unsigned)rect->tr_end.tp_col,
-          (unsigned)pos->tp_row, (unsigned)pos->tp_col);
-#endif
+  if (g_verbosity >= 1) {
+    fprintf(stderr,
+            "copy: rect=((row=%u, col=%u), (row=%u, col=%u)), row=%u, col=%u\n",
+            (unsigned)rect->tr_begin.tp_row, (unsigned)rect->tr_begin.tp_col,
+            (unsigned)rect->tr_end.tp_row, (unsigned)rect->tr_end.tp_col,
+            (unsigned)pos->tp_row, (unsigned)pos->tp_col);
+  }
 
   // Memory and copies are cheap, for our purposes, so just bounce (rather than
   // vary directionality).
@@ -136,7 +140,46 @@ void RespondCallback(void* ctx, const void* buf, size_t size) {
   fprintf(stderr, "TODO: respond\n");
 }
 
+void PrintUsage(const char* argv0) {
+  printf("usage: %s [options] [--] <file|->...\n\n"
+         "(- indicates standard input)\n", argv0);
+}
+
 int main(int argc, char** argv) {
+  if (argc < 2) {
+    PrintUsage(argv[0]);
+    return 0;
+  }
+
+  // Consume options first.
+  int first_file = 1;
+  for (; first_file < argc; first_file++) {
+    if (argv[first_file][0] != '-' || strcmp(argv[first_file], "-") == 0)
+      break;
+    if (strcmp(argv[first_file], "--") == 0) {
+      first_file++;
+      break;
+    }
+    if (strcmp(argv[first_file], "-h") == 0 ||
+        strcmp(argv[first_file], "--help") == 0) {
+      PrintUsage(argv[0]);
+      return 0;
+    }
+    if (strcmp(argv[first_file], "-v") == 0 ||
+        strcmp(argv[first_file], "--verbose") == 0) {
+      g_verbosity++;
+    } else {
+      // No other options yet.
+      fprintf(stderr, "%s: unknown option %s\n", argv[0], argv[first_file]);
+      return 1;
+    }
+  }
+
+  if (first_file >= argc) {
+    fprintf(stderr, "%s: no inputs specified\n", argv[0]);
+    return 1;
+  }
+
   const teken_funcs_t callbacks = {BellCallback, CursorCallback,
                                    PutcharCallback, FillCallback, CopyCallback,
                                    ParamCallback, RespondCallback};
@@ -144,10 +187,25 @@ int main(int argc, char** argv) {
   teken_t terminal;
   teken_init(&terminal, &callbacks, &st);
 
-  int c;
-  while ((c = getchar()) != EOF) {
-    unsigned char ch = (unsigned char)c;
-    teken_input(&terminal, &ch, 1);
+  for (int i = first_file; i < argc; i++) {
+    FILE* fp = stdin;
+    bool own_fp = false;
+    if (strcmp(argv[i], "-") != 0) {
+      if (!(fp = fopen(argv[i], "r"))) {
+        fprintf(stderr, "%s: error opening %s: %s\n", argv[0], argv[i],
+                strerror(errno));
+        return 1;
+      }
+    }
+
+    int c;
+    while ((c = getc(fp)) != EOF) {
+      unsigned char ch = (unsigned char)c;
+      teken_input(&terminal, &ch, 1);
+    }
+
+    if (own_fp)
+      fclose(fp);
   }
 
   // Assume the standard dimensions for now.
