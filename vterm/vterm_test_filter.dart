@@ -6,6 +6,7 @@
 // prints out the rendered characters (ignoring colors and attributes).
 // This is probably most useful when stdin/stdout are redirected from/to files.
 
+import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
 
@@ -37,6 +38,29 @@ class TestTerminalDelegate implements TerminalDelegate {
 void printUsage(String argv0) {
   stdout.write('usage: $argv0 [option]... [--] (FILE|-)...\n\n'
                '(- indicates standard input)\n');
+}
+
+void printTerminal(Terminal terminal) {
+  var out = new Map();
+
+  out['size'] = [terminal.height, terminal.width];
+
+  out['characters'] = [];
+  for (var i = 0; i < terminal.height; i++) {
+    var codes = new List<int>.from(
+        terminal.lines[terminal.lines.length - terminal.height + i].characters);
+    for (var j = 0; j < codes.length; j++) {
+      if (codes[j] == 0) {
+        codes[j] = 32;
+      }
+    }
+    out['characters'].add(new String.fromCharCodes(codes));
+  }
+
+  out['position'] = [terminal.cursorY, terminal.cursorX];
+
+  stdout.write(const JsonEncoder.withIndent('  ').convert(out));
+  stdout.write('\n');
 }
 
 void main(List<String> arguments) {
@@ -87,7 +111,7 @@ void main(List<String> arguments) {
   for (int i = first_file; i < arguments.length; i++) {
     if (arguments[i] == '-') {
       while (true) {
-        var c = fp.readByteSync();
+        var c = stdin.readByteSync();
         if (c < 0) {
           break;
         }
@@ -105,15 +129,5 @@ void main(List<String> arguments) {
     }
   }
 
-  // TODO(vtl): Proper output format.
-  for (var i = terminal.lines.length - 24; i < terminal.lines.length; i++) {
-    var l = terminal.lines[i];
-    for (var c in l.characters) {
-      if (c == kTerminalUnfilledSpace) {
-        c = 32;
-      }
-      stdout.writeCharCode(c);
-    }
-    stdout.writeCharCode(10);
-  }
+  printTerminal(terminal);
 }
