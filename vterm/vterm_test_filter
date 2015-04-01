@@ -5,4 +5,4 @@
 
 # We're in the tools directory.
 THIS_DIR="$(dirname "$0")"
-exec "$THIS_DIR/../tools/run_dart.sh" "${THIS_DIR}/vterm_test_filter.dart"
+exec "$THIS_DIR/../tools/run_dart.sh" "${THIS_DIR}/vterm_test_filter.dart" $*
