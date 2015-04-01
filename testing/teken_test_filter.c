@@ -199,6 +199,8 @@ int main(int argc, char** argv) {
     return 0;
   }
 
+  bool auto_crlf = false;
+
   // Consume options first.
   int first_file = 1;
   for (; first_file < argc; first_file++) {
@@ -216,6 +218,8 @@ int main(int argc, char** argv) {
     if (strcmp(argv[first_file], "-v") == 0 ||
         strcmp(argv[first_file], "--verbose") == 0) {
       g_verbosity++;
+    } else if (strcmp(argv[first_file], "--auto-crlf") == 0) {
+      auto_crlf = true;
     } else {
       // No other options yet.
       fprintf(stderr, "%s: unknown option %s\n", argv[0], argv[first_file]);
@@ -248,8 +252,12 @@ int main(int argc, char** argv) {
 
     int c;
     while ((c = getc(fp)) != EOF) {
-      unsigned char ch = (unsigned char)c;
-      teken_input(&terminal, &ch, 1);
+      if (auto_crlf && (c == 10 || c == 13)) {
+        teken_input(&terminal, "\r\n", 2);
+      } else {
+        unsigned char ch = (unsigned char)c;
+        teken_input(&terminal, &ch, 1);
+      }
     }
 
     if (own_fp)

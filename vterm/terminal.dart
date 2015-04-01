@@ -254,7 +254,6 @@ class Terminal {
         case 11: // VT (^K).
         case 12: // FF (^L).
           _advanceLine();
-          cursorX = 0;
           break;
         case 13: // CR (^M/'\r').
           cursorX = 0;

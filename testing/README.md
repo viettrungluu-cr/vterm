@@ -59,8 +59,10 @@ the interpreter (or similar).
 
 `option` shall be of the form `-f` or `--flag`; combining multiple single-letter
 options (so that, e.g., `-abc` is equivalent to `-a -b -a`) need not be
-supported. Standard options include `-h`/`--help` and `-v`/`--verbose` (verbose
-logging shall be to standard error).
+supported. Standard options:
+* `-h`/`--help` (self-explanatory),
+* `-v`/`--verbose` (verbose logging shall be to standard error),
+* `--auto-crlf` (translate CR or LF to CR-LF pairs).
 
 Option processing will be terminated by the first file (not beginning with `-`),
 the first instance of `-` (alone) indicating standard input, or by the no-op

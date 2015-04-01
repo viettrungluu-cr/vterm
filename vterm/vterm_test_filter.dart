@@ -65,6 +65,7 @@ void printTerminal(Terminal terminal) {
 
 void main(List<String> arguments) {
   int verbosity = 0;
+  bool autoCrLf = false;
 
   assertFailOnUnimplemented = true;
   assertFailOnUnknown = true;
@@ -92,6 +93,8 @@ void main(List<String> arguments) {
     }
     if (arguments[first_file] == '-v' || arguments[first_file] == '--verbose') {
       verbosity++;
+    } else if (arguments[first_file] == '--auto-crlf') {
+      autoCrLf = true;
     } else {
       // No other options yet.
       stderr.write('$argv0: unknown option ${arguments[first_file]}\n');
@@ -107,6 +110,19 @@ void main(List<String> arguments) {
   }
 
   var terminal = new Terminal(new TestTerminalDelegate());
+  var putChar;
+  if (autoCrLf) {
+    putChar = (c) {
+      if (c == 10 || c == 13) {
+        terminal.putChar(13);
+        terminal.putChar(10);
+      } else {
+        terminal.putChar(c);
+      }
+    };
+  } else {
+    putChar = (c) { terminal.putChar(c); };
+  }
 
   for (int i = first_file; i < arguments.length; i++) {
     if (arguments[i] == '-') {
@@ -115,12 +131,12 @@ void main(List<String> arguments) {
         if (c < 0) {
           break;
         }
-        terminal.putChar(c);
+        putChar(c);
       }
     } else {
       try {
         var cList = (new File(arguments[i])).readAsBytesSync();
-        cList.forEach((c) { terminal.putChar(c); });
+        cList.forEach((c) { putChar(c); });
       } on FileSystemException catch (e) {
         stderr.write('$argv0: error opening ${arguments[i]}: ${e.message}\n');
         exitCode = 1;
