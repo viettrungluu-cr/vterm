@@ -3,6 +3,6 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-# We're in the tools directory.
+# We're in the testing directory.
 THIS_DIR="$(dirname "$0")"
 exec "$THIS_DIR/../tools/run_dart.sh" "${THIS_DIR}/vterm_test_filter.dart" $*

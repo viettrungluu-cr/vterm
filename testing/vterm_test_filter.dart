@@ -2,16 +2,15 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// Simple program that sends stdin to be rendered by the model, and when done
-// prints out the rendered characters (ignoring colors and attributes).
-// This is probably most useful when stdin/stdout are redirected from/to files.
+// See README.md. This is a "test filter" implemented using the vterm terminal
+// (model).
 
 import 'dart:convert';
 import 'dart:core';
 import 'dart:io';
 
-import 'terminal.dart';
-import 'xterm256_colors.dart' as xterm256;
+import '../vterm/terminal.dart';
+import '../vterm/xterm256_colors.dart' as xterm256;
 
 class TestTerminalDelegate implements TerminalDelegate {
   @override

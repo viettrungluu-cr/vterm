@@ -2,6 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+// See README.md. This is a "test filter" implemented using libteken.
+
 #include <assert.h>
 #include <errno.h>
 #include <stdbool.h>
