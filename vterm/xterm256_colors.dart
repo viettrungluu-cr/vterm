@@ -3,7 +3,7 @@
 // found in the LICENSE file.
 
 int mapIndexToColor(int index) {
-  assert(0 <= index && index <= 15);
+  assert(0 <= index && index <= 255);
   switch (index) {
     // xterm colors:
     case 0:

@@ -10,21 +10,17 @@ import 'dart:core';
 import 'dart:io';
 
 import '../vterm/terminal.dart';
-import '../vterm/xterm256_colors.dart' as xterm256;
+import '../vterm/basic_colors.dart' as colors;
 
 class TestTerminalDelegate implements TerminalDelegate {
   @override
   int mapIndexToColor(int index) {
-    // TODO(vtl): Probably shouldn't map using xterm256 (at least not if we want
-    // to compare versus teken).
-    return xterm256.mapIndexToColor(index);
+    return colors.mapIndexToColor(index);
   }
 
   @override
   int mapRGBToColor(int red, int green, int blue) {
-    // TODO(vtl): Probably shouldn't map using xterm256 (at least not if we want
-    // to compare versus teken).
-    return xterm256.mapRGBToColor(red, green, blue);
+    return colors.mapRGBToColor(red, green, blue);
   }
 
   @override
@@ -45,15 +41,26 @@ void printTerminal(Terminal terminal) {
   out['size'] = [terminal.height, terminal.width];
 
   out['characters'] = [];
+  out['fg_colors'] = [];
+  out['bg_colors'] = [];
   for (var i = 0; i < terminal.height; i++) {
-    var codes = new List<int>.from(
+    var charactersCodes = new List<int>.from(
         terminal.lines[terminal.lines.length - terminal.height + i].characters);
-    for (var j = 0; j < codes.length; j++) {
-      if (codes[j] == 0) {
-        codes[j] = 32;
+    var fgCodes = new List<int>.from(
+        terminal.lines[terminal.lines.length - terminal.height + i].fgColors);
+    var bgCodes = new List<int>.from(
+        terminal.lines[terminal.lines.length - terminal.height + i].bgColors);
+    for (var j = 0; j < charactersCodes.length; j++) {
+      if (charactersCodes[j] == 0) {
+        charactersCodes[j] = 32;
+        fgCodes[j] = 0;
       }
+      fgCodes[j] += 48;
+      bgCodes[j] += 48;
     }
-    out['characters'].add(new String.fromCharCodes(codes));
+    out['characters'].add(new String.fromCharCodes(charactersCodes));
+    out['fg_colors'].add(new String.fromCharCodes(fgCodes));
+    out['bg_colors'].add(new String.fromCharCodes(bgCodes));
   }
 
   out['position'] = [terminal.cursorY, terminal.cursorX];

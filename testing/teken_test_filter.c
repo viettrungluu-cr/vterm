@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-// See README.md. This is a "test filter" implemented using libteken.
-
 #include <assert.h>
 #include <errno.h>
 #include <stdbool.h>
@@ -181,6 +179,41 @@ void PrintState(const struct State* st, teken_t* terminal) {
       // Let's hope no one went all Unicode on me.
       EscapedPutChar(st->ch[row][col]);
     }
+    printf((row + 1 == height) ? "\"\n" : "\",\n");
+  }
+  printf("  ],\n");
+
+  // Only covers basic colors (0-7):
+  printf("  \"fg_colors\": [\n");
+  for (unsigned row = 0; row < height; row++) {
+    printf("    \"");
+    for (unsigned col = 0; col < width; col++) {
+      assert(st->attr[row][col].ta_fgcolor < 8);
+      printf("%d", (int)st->attr[row][col].ta_fgcolor);
+    }
+    printf((row + 1 == height) ? "\"\n" : "\",\n");
+  }
+  printf("  ],\n");
+
+  // Only covers basic colors (0-7):
+  printf("  \"bg_colors\": [\n");
+  for (unsigned row = 0; row < height; row++) {
+    printf("    \"");
+    for (unsigned col = 0; col < width; col++) {
+      assert(st->attr[row][col].ta_bgcolor < 8);
+      printf("%d", (int)st->attr[row][col].ta_bgcolor);
+    }
+    printf((row + 1 == height) ? "\"\n" : "\",\n");
+  }
+  printf("  ],\n");
+
+  // Only covers basic format attributes (1: bold, 2: underline, 4: blinking,
+  // 8: reverse):
+  printf("  \"formats\": [\n");
+  for (unsigned row = 0; row < height; row++) {
+    printf("    \"");
+    for (unsigned col = 0; col < width; col++)
+      printf("%d", (int)(st->attr[row][col].ta_format & 15));
     printf((row + 1 == height) ? "\"\n" : "\",\n");
   }
   printf("  ],\n");
