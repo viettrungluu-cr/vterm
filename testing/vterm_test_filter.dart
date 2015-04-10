@@ -32,7 +32,7 @@ class TestTerminalDelegate implements TerminalDelegate {
 
 void printUsage(String argv0) {
   stdout.write('usage: $argv0 [option]... [--] (FILE|-)...\n\n'
-               '(- indicates standard input)\n');
+      '(- indicates standard input)\n');
 }
 
 void printTerminal(Terminal terminal) {
@@ -127,7 +127,9 @@ void main(List<String> arguments) {
       }
     };
   } else {
-    putChar = (c) { terminal.putChar(c); };
+    putChar = (c) {
+      terminal.putChar(c);
+    };
   }
 
   for (int i = first_file; i < arguments.length; i++) {
@@ -142,7 +144,9 @@ void main(List<String> arguments) {
     } else {
       try {
         var cList = (new File(arguments[i])).readAsBytesSync();
-        cList.forEach((c) { putChar(c); });
+        cList.forEach((c) {
+          putChar(c);
+        });
       } on FileSystemException catch (e) {
         stderr.write('$argv0: error opening ${arguments[i]}: ${e.message}\n');
         exitCode = 1;
